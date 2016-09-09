@@ -29,6 +29,16 @@ type userRecord []struct {
 	Website string
 }
 
+// JSON response structure
+type userResponse struct {
+	UserID   float64 `json:"userid"`
+	User     string  `json:"user"`
+	UserName string  `json:"username"`
+	Email    string  `json:"email"`
+	Phone    string  `json:"phone"`
+	Website  string  `json:"website"`
+}
+
 var info *log.Logger
 
 // Log the basic HTTP info
@@ -153,6 +163,18 @@ func handler(w http.ResponseWriter, req *http.Request) {
 	}
 
 	info.Printf("User Record return:\n %+v", record)
+
+	//Marshal into JSON response
+	responseStruct := &userResponse{
+		UserID:   12,
+		User:     "Chris Foster",
+		UserName: "chrifost",
+		Email:    "chrifost@cisco.com",
+		Phone:    "770-236-6009",
+		Website:  "http://chrifost.com"}
+
+	responseJSON, _ := json.Marshal(responseStruct)
+	info.Println(string(responseJSON))
 }
 
 func initLogging(infoHandle io.Writer) {
