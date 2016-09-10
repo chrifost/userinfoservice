@@ -175,6 +175,9 @@ func handler(w http.ResponseWriter, req *http.Request) {
 
 	responseJSON, _ := json.Marshal(responseStruct)
 	info.Println("Marshaled JSON response:", string(responseJSON))
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(responseJSON)
 }
 
 func initLogging(infoHandle io.Writer) {
