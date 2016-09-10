@@ -16,7 +16,7 @@ import (
 
 // FYI - Remember to make variables start with Uppercase so they can be accessed
 // outside the package
-type userRecord []struct {
+type userRecord struct {
 	// These fields use the "json: tag" to specify which field they map to
 	UserID   float64 `json:"id"`
 	User     string  `json:"name"`
@@ -104,14 +104,14 @@ func getUserRecord(id string) (*userRecord, error) {
 	info.Println("Raw JSON Response:\n", string(content))
 
 	//Fill the record with the data from the JSON
-	var record userRecord
+	var record []userRecord
 	err = json.Unmarshal(content, &record)
 	if err != nil {
 		info.Println("JSON Error:", err)
 		return nil, err
 	}
 
-	return &record, nil
+	return &record[0], nil
 }
 
 func (record userRecord) IsEmpty() bool {
@@ -151,7 +151,7 @@ func handler(w http.ResponseWriter, req *http.Request) {
 	info.Println("userId:", userID)
 
 	//Get user data based on provided Id
-	record, err := getUserRecord(userID)
+	record, _ := getUserRecord(userID)
 	if err != nil {
 		info.Println("Error getUserRecord()")
 	}
@@ -165,16 +165,16 @@ func handler(w http.ResponseWriter, req *http.Request) {
 	info.Printf("User Record return:\n %+v", record)
 
 	//Marshal into JSON response
-	responseStruct := &userResponse{
-		UserID:   12,
-		User:     "Chris Foster",
-		UserName: "chrifost",
-		Email:    "chrifost@cisco.com",
-		Phone:    "770-236-6009",
-		Website:  "http://chrifost.com"}
+	responseStruct := userResponse{
+		UserID:   record.UserID,
+		User:     record.User,
+		UserName: record.UserName,
+		Email:    record.Email,
+		Phone:    record.Phone,
+		Website:  record.Website}
 
 	responseJSON, _ := json.Marshal(responseStruct)
-	info.Println(string(responseJSON))
+	info.Println("Marshaled JSON response:", string(responseJSON))
 }
 
 func initLogging(infoHandle io.Writer) {
