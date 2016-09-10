@@ -16,7 +16,7 @@ import (
 
 // FYI - Remember to make variables start with Uppercase so they can be accessed
 // outside the package
-type userRecord []struct {
+type userRecord struct {
 	// These fields use the "json: tag" to specify which field they map to
 	UserID   float64 `json:"id"`
 	User     string  `json:"name"`
@@ -27,6 +27,16 @@ type userRecord []struct {
 	// As these fields can be nullable, we use a pointer to a string rather
 	// than a string
 	Website string
+}
+
+// JSON response structure
+type userResponse struct {
+	UserID   float64 `json:"userid"`
+	User     string  `json:"user"`
+	UserName string  `json:"username"`
+	Email    string  `json:"email"`
+	Phone    string  `json:"phone"`
+	Website  string  `json:"website"`
 }
 
 var info *log.Logger
@@ -94,14 +104,14 @@ func getUserRecord(id string) (*userRecord, error) {
 	info.Println("Raw JSON Response:\n", string(content))
 
 	//Fill the record with the data from the JSON
-	var record userRecord
+	var record []userRecord
 	err = json.Unmarshal(content, &record)
 	if err != nil {
 		info.Println("JSON Error:", err)
 		return nil, err
 	}
 
-	return &record, nil
+	return &record[0], nil
 }
 
 func (record userRecord) IsEmpty() bool {
@@ -141,7 +151,7 @@ func handler(w http.ResponseWriter, req *http.Request) {
 	info.Println("userId:", userID)
 
 	//Get user data based on provided Id
-	record, err := getUserRecord(userID)
+	record, _ := getUserRecord(userID)
 	if err != nil {
 		info.Println("Error getUserRecord()")
 	}
@@ -153,6 +163,21 @@ func handler(w http.ResponseWriter, req *http.Request) {
 	}
 
 	info.Printf("User Record return:\n %+v", record)
+
+	//Marshal into JSON response
+	responseStruct := userResponse{
+		UserID:   record.UserID,
+		User:     record.User,
+		UserName: record.UserName,
+		Email:    record.Email,
+		Phone:    record.Phone,
+		Website:  record.Website}
+
+	responseJSON, _ := json.Marshal(responseStruct)
+	info.Println("Marshaled JSON response:", string(responseJSON))
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(responseJSON)
 }
 
 func initLogging(infoHandle io.Writer) {
